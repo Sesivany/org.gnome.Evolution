@@ -1,9 +1,7 @@
-
-
-    {
+{
         "app-id": "org.gnome.Evolution",
         "runtime": "org.gnome.Platform",
-        "runtime-version": "3.28",
+        "runtime-version": "3.30",
         "sdk": "org.gnome.Sdk",
         "command": "evolution",
         "rename-icon": "evolution",
@@ -26,9 +24,10 @@
             "--socket=x11",
             "--socket=wayland",
             "--socket=pulseaudio",
-            "--filesystem=home",
+            "--device=dri",
             "--talk-name=org.gnome.OnlineAccounts",
             "--talk-name=org.freedesktop.Notifications",
+            "--talk-name=org.freedesktop.secrets",
             "--filesystem=xdg-run/dconf",
             "--filesystem=~/.config/dconf:ro",
             "--talk-name=ca.desrt.dconf",
@@ -41,13 +40,14 @@
                 "buildsystem": "cmake-ninja",
                 "config-opts": [
                     "-DBUILD_SHARED_LIBS:BOOL=ON",
-                    "-DGOBJECT_INTROSPECTION:BOOL=OFF"
+                    "-DGOBJECT_INTROSPECTION:BOOL=OFF",
+                    "-DCMAKE_INSTALL_LIBDIR:PATH=/app/lib"
                 ],
                 "sources": [
                     {
                         "type": "archive",
-                        "url": "https://github.com/libical/libical/releases/download/v3.0.3/libical-3.0.3.tar.gz",
-                        "sha256": "5b91eb8ad2d2dcada39d2f81d5e3ac15895823611dc7df91df39a35586f39241"
+                        "url": "https://github.com/libical/libical/releases/download/v3.0.4/libical-3.0.4.tar.gz",
+                        "sha256": "72b216e10233c3f60cb06062facf41f3b0f70615e5a60b47f9853341a0d5d145"
                     }
                 ]
             },
@@ -78,8 +78,8 @@
                 "sources": [
                     {
                         "type": "archive",
-                        "url": "https://download.gnome.org/sources/gnome-online-accounts/3.28/gnome-online-accounts-3.28.0.tar.xz",
-                        "sha256": "87bc4ef307604f1ce4f09f6e5c9996ef8d37ca5e0a3bf76f6b27d71844adb40c"
+                        "url": "https://download.gnome.org/sources/gnome-online-accounts/3.30/gnome-online-accounts-3.30.1.tar.xz",
+                        "sha256": "7e968a325e959f0b2419bed5a4c5b6d3a9327aceebd72f4fb01478c78ce85b41"
                     }
                 ]
             },
@@ -108,9 +108,10 @@
      
             {
                 "name": "geocode-glib",
+                "buildsystem": "meson",
                 "config-opts": [
-                    "--disable-introspection",
-                    "--disable-gtk-doc"
+                    "-Denable-gtk-doc=false",
+                    "-Denable-introspection=false"
                 ],
                 "cleanup": [
                     "/share/gtk-doc"
@@ -133,8 +134,8 @@
                 "sources": [
                     {
                         "type": "archive",
-                        "url": "https://download.gnome.org/sources/libgweather/3.28/libgweather-3.28.2.tar.xz",
-                        "sha256": "081ce81653afc614e12641c97a8dd9577c524528c63772407ae2dbcde12bde75"
+                        "url": "https://download.gnome.org/sources/libgweather/3.32/libgweather-3.32.0.tar.xz",
+                        "sha256": "de9a2b392a8b27e012ed80bb9c950085692cd8e898c367c092df15f964a91d13"
                     }
                 ]
             },
@@ -158,8 +159,8 @@
                 "sources": [
                     {
                         "type": "archive",
-                        "url": "http://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.4.46.tgz",
-                        "sha256": "9a90dcb86b99ae790ccab93b7585a31fbcbeec8c94bf0f7ab0ca0a87ea0c4b2d"
+                        "url": "http://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.4.47.tgz",
+                        "sha256": "f54c5877865233d9ada77c60c0f69b3e0bfd8b1b55889504c650047cc305520b"
                     },
      
                     {
@@ -168,50 +169,21 @@
                         "commands": [
                             "AUTOMAKE=\"/bin/true\" autoreconf -vfi"
                         ]
-                    }
-                ]
-            },
-     
-            {
-                "name": "gnome-keyring",
-                "rm-configure": true,
-                "config-opts": [
-                    "--with-pkcs11-config=/app/share/gk-to-remove",
-                    "--with-pkcs11-modules=/app/share/gk-to-remove",
-
-
-                    "--disable-doc",
-                    "--disable-pam",
-                    "--disable-p11-tests",
-                    "--disable-ssh-agent"
-                ],
-                "cleanup": [
-                    "/etc/xdg",
-                    "/share/gk-to-remove",
-                    "/share/GConf"
-                ],
-                "sources": [
-                    {
-                        "type": "archive",
-                        "url": "https://download.gnome.org/sources/gnome-keyring/3.28/gnome-keyring-3.28.2.tar.xz",
-                        "sha256": "81171b7d07211b216b4c9bb79bf2deb3deca18fe8d56d46dda1c4549b4a2646a"
                     },
-     
+
                     {
-                        "type": "script",
-                        "dest-filename": "autogen.sh",
-                        "commands": [
-                            "AUTOMAKE=\"automake --foreign\" autoreconf -vfi"
-                        ]
+                        "type": "shell",
+                        "commands": [ "cp -p /usr/share/automake-*/config.{sub,guess} ." ]
                     }
                 ]
-            },
+            }, 
      
             {
                 "name": "evolution-data-server",
                 "buildsystem": "cmake-ninja",
                 "cleanup": [ "/share/GConf" ],
                 "config-opts": [
+                    "-DDBUS_SERVICES_PREFIX=org.gnome.Evolution",
                     "-DENABLE_FILE_LOCKING=fcntl",
                     "-DENABLE_DOT_LOCKING=OFF",
                     "-DENABLE_OAUTH2=ON",
@@ -223,20 +195,16 @@
                     "-DENABLE_VALA_BINDINGS=OFF",
                     "-DENABLE_INSTALLED_TESTS=OFF",
                     "-DENABLE_GTK_DOC=OFF",
-                    "-DENABLE_DBUS_SESSION_TOOL=ON",
                     "-DWITH_PRIVATE_DOCS=OFF",
                     "-DWITH_PHONENUMBER=OFF",
-                    "-DWITH_SYSTEMDUSERUNITDIR=OFF"
+                    "-DWITH_SYSTEMDUSERUNITDIR=OFF",
+                    "-DWITH_LIBDB=OFF"
                 ],
                 "sources": [
                     {
                         "type": "archive",
-                        "url": "https://download.gnome.org/sources/evolution-data-server/3.30/evolution-data-server-3.30.1.tar.xz",
-                        "sha256": "a4221ece8bed77eef4cbdd91a4ba9a786068c93bc52e0c9d7aca525e620dd60e"
-                    },
-                    {
-                        "type": "patch",
-                        "path": "eds.patch"
+                        "url": "https://download.gnome.org/sources/evolution-data-server/3.32/evolution-data-server-3.32.0.tar.xz",
+                        "sha256": "8e10b84974e483322e07a97c57dff56ffb208aa0c33e39a13208d6c52470ddde"
                     }
                 ]
             },
@@ -252,8 +220,8 @@
                 "sources": [
                     {
                         "type": "archive",
-                        "url": "https://downloads.sourceforge.net/project/gtkspell/3.0.9/gtkspell3-3.0.9.tar.xz",
-                        "sha256": "a4f4a4a2789f7499563e26d96b22d8085222ebe278da47d026b2de782b8b4d26"
+                        "url": "https://downloads.sourceforge.net/project/gtkspell/3.0.10/gtkspell3-3.0.10.tar.xz",
+                        "sha256": "b040f63836b347eb344f5542443dc254621805072f7141d49c067ecb5a375732"
                     }
                 ]
             },
@@ -280,54 +248,41 @@
                 "sources": [
                     {
                         "type": "archive",
-                        "url": "https://download.gnome.org/sources/evolution/3.30/evolution-3.30.1.tar.xz",
-                        "sha256": "be9565303ec8b20d68a136b61e2586d9fdd5204e4ad66d4b908d5957c578749b"
+                        "url": "https://download.gnome.org/sources/evolution/3.32/evolution-3.32.0.tar.xz",
+                        "sha256": "ccd61e080db0cf547467c579bb29ffc0f7a2e1a9d7dab92353e3f9e5c6837cea"
                     },
-     
+			     
                     {
                         "type": "shell",
                         "commands": [
                             "cp config.h.in config.h.in.orig",
                             "cat config.h.in.orig | sed -e \"s|\\@VERSION_SUBSTRING\\@| \\(flatpak git$(git log --pretty=format:%h --max-count=1)\\)|\" >config.h.in"
                         ]
-                    },
-     
+                    }, 
                     {
                         "type": "script",
                         "commands": [
-                            "export GIO_USE_NETWORK_MONITOR=base",
-                            "echo evolution-flatpak | /app/bin/gnome-keyring-daemon --daemonize --unlock &",
-                            "sleep 1",
-                            "gsettings reset org.gnome.evolution-data-server network-monitor-gio-name",
-                            "/app/libexec/evolution-source-registry &",
-                            "sleep 1",
-                            "/app/libexec/evolution-addressbook-factory -r &",
-                            "/app/libexec/evolution-calendar-factory -r &",
-                            "sleep 1",
-                            "/app/bin/evolution.bin",
-                            "sleep 3"
+                            "if [ \"$1\" = \"--quit\" -o \"$1\" = \"--force-shutdown\" ]; then",
+						"	/app/bin/evolution.bin \"$@\"",
+						"else",
+						"	export GIO_USE_NETWORK_MONITOR=base",
+						"	gsettings reset org.gnome.evolution-data-server network-monitor-gio-name",
+						"	/app/libexec/evolution-source-registry &",
+						"	sleep 1",
+						"	/app/libexec/evolution-addressbook-factory -r &",
+						"	/app/libexec/evolution-calendar-factory -r &",
+						"	sleep 1",
+						"	/app/bin/evolution.bin \"$@\"",
+						"fi"
+                            
                         ],
                         "dest-filename": "flatpak-evolution-wrapper.sh"
-                    },
-     
-                    {
-                        "type": "script",
-                        "commands": [
-                            "/app/libexec/evolution-data-server/evolution-dbus-session \\",
-                            "   --exec /app/bin/evolution-wrapper \\",
-                            "   --service-dir /app/share/dbus-1/services/ \\",
-                            "   --iface ca.desrt.dconf:/ca/desrt/dconf \\",  
-                            "   --iface org.freedesktop.Notifications:/org/freedesktop/Notifications \\",
-                            "   --iface org.freedesktop.portal.Desktop:/org/freedesktop/portal/desktop \\",
-                            "   --iface org.gnome.OnlineAccounts:/org/gnome/OnlineAccounts"
-                        ],
-                        "dest-filename": "flatpak-evolution-run.sh"
+                   
                     }
                 ],
                 "post-install": [
                     "mv /app/bin/evolution /app/bin/evolution.bin",
-                    "cp flatpak-evolution-run.sh /app/bin/evolution",
-                    "cp flatpak-evolution-wrapper.sh /app/bin/evolution-wrapper"
+                    "cp flatpak-evolution-wrapper.sh /app/bin/evolution"
                 ]
             },
      
@@ -337,8 +292,8 @@
                 "sources": [
                     {
                         "type": "archive",
-                        "url": "https://www.cabextract.org.uk/libmspack/libmspack-0.6alpha.tar.gz",
-                        "sha256": "1edbee82accb28e679ab538f803aab7a5a569e4102ccf1715b462b1bd915f921"
+                        "url": "https://www.cabextract.org.uk/libmspack/libmspack-0.10.1alpha.tar.gz",
+                        "sha256": "bac862dee6e0fc10d92c70212441d9f8ad9b0222edc9a708c3ead4adb1b24a8e"
                     }
                 ]
             },
@@ -349,12 +304,10 @@
                 "sources": [
                     {
                         "type": "archive",
-                        "url": "https://download.gnome.org/sources/evolution-ews/3.30/evolution-ews-3.30.1.tar.xz",
-                        "sha256": "91b3a7c7cf215796799d6ed7574f063241b825a53262db6b64fba32f7f402018"
+                        "url": "https://download.gnome.org/sources/evolution-ews/3.32/evolution-ews-3.32.0.tar.xz",
+                        "sha256": "83902650001c8802e9043f6f48cbb042eed81ba410d93436769d3bf4869cecb7"
                     }
                 ]
             }
         ]
-    }
-
-
+}
